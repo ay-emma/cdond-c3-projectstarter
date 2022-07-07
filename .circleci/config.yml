@@ -43,12 +43,12 @@ jobs:
       - checkout
       - restore_cache:
           keys: [frontend-build]
-      run: 
-        name: Test frontend
-        command: |
-          cd frontend
-          npm install 
-          npm run test
+      - run: 
+          name: Test frontend
+          command: |
+            cd frontend
+            npm install 
+            npm run test
 
   test-backend:
     docker:
