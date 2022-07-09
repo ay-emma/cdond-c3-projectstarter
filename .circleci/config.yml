@@ -141,18 +141,42 @@ jobs:
           command: |
             aws ec2 describe-instances  \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
-              --filters "Name=tag:project, Values= udapeople" \
+              --filters "Name=tag:project,Values=udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --output text >> .circleci/ansible/inventory.text
             cat ~/project/.circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}  
+
+  configure-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.16
+      # Docker image here that supports Ansible
+    steps:
+      # Checkout code from git
+      - checkout
+      # Add ssh keys with fingerprint
+      - add_ssh_keys: 
+          fingerprints: ["51:a3:30:a6:1f:ca:d1:70:73:f4:6a:3f:0c:fd:6a:21"]
+      # attach workspace
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible tar gzip aws-cli
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml 
       # Here's where you will add some code to rollback on failure      
-  
+      - destroy-environment:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}  
+
 
 workflows:
   default:
@@ -169,6 +193,8 @@ workflows:
           requires: [build-backend]
       - deploy-infrastructure:
           requires: [ test-frontend, test-backend, scan-frontend, scan-backend ]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
       
 
             
