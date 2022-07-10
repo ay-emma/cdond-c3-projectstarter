@@ -4,35 +4,17 @@
   apt:
     update_cache: yes
 
-- name: upgrade packages
-  become: true
-  apt:
-    upgrade: yes
-
-- name: install dependencies
-  become: true
-  apt:
-    name: ["nodejs", "npm"]
-    state: latest
-    update_cache: yes
-
-- name: install pm2
-  become: true
-  npm:
-    name: pm2
-    global: yes
-    production: yes
-    state: present
-
 - name: Extract files 
   become: true
   unarchive:
     src: files/artifact.tar.gz
-    dest: .
+    dest: /home/ubuntu
 
 
 - name: start the app
   become: yes
   shell: |
+    cd /home/ubuntu
+    npm install
     pm2 stop all
     pm2 start npm -- start
