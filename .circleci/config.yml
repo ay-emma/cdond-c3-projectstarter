@@ -126,8 +126,8 @@ jobs:
           command: |
             cd backend
             npm install
+            npm update mkdirp --depth 6
             npm install --save-dev webpack@5.73.0
-            npm update mkdirp --depth 5
             npm audit fix --audit-level=critical --force
             npm audit --audit-level=critical
   
@@ -217,7 +217,9 @@ jobs:
             then
                 curl https://kvdb.io/YLRccVN3mPHn5iE9VYsfFg/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
-     # Here's where you will add some code to rollback on failure      
+      - destroy-environment:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}  
+         
   deploy-frontend:
     docker:
       - image: python:3.7-alpine3.16
