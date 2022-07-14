@@ -414,7 +414,26 @@ jobs:
               else
                 echo "Cannot clean stacks"
               fi
-              
+  prometheus-node-exporter:
+    docker:
+      - image: python:3.7-alpine3.16
+    steps:
+      - checkout
+      - add_ssh_keys: 
+          fingerprints: ["51:a3:30:a6:1f:ca:d1:70:73:f4:6a:3f:0c:fd:6a:21"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible tar gzip aws-cli nodejs npm
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt node-exporter.yml 
+      - destroy-environment:
+          id: ${CIRCLE_WORKFLOW_ID:0:7}  
           
 
 workflows:
@@ -436,6 +455,8 @@ workflows:
             branches:
               only: [master]
       - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      - prometheus-node-exporter:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
