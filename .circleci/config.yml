@@ -363,7 +363,7 @@ jobs:
           command: |
             # get old workflow ID
             export OldWorkflowID=$(aws cloudformation list-exports \
-            --query "Exports[?Name==\`ID\`].Value" \
+            --query "Exports[?Name==\`WorkflowID\`].Value" \
             --no-paginate --output text)
             echo $OldWorkflowID >> ~/OldWorkflowID.txt
             cat ~/OldWorkflowID.txt
@@ -394,9 +394,7 @@ jobs:
             name: Get old stack workflow id
             command: |
               # your code here
-              export OldWorkflowID=$(aws cloudformation \
-              list-exports --query "Exports[?Name==\`ID\`].Value" \
-              --no-paginate --output text)
+              export OldWorkflowID= '569473b'
 
               echo OldWorkflowID: "${OldWorkflowID}"
               echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
