@@ -394,7 +394,7 @@ jobs:
             name: Get old stack workflow id
             command: |
               # your code here
-              export OldWorkflowID= '569473b'
+              export OldWorkflowID=569473b
 
               echo OldWorkflowID: "${OldWorkflowID}"
               echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
