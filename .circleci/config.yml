@@ -321,7 +321,7 @@ jobs:
             --filters "Name=tag:project,Values=udapeople" \
             --output text )
 
-            sleep 80
+            sleep 3m
 
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
