@@ -36,8 +36,6 @@ commands:
               # npm install
               npm run migration:revert
             fi
-
-
 jobs: 
   build-frontend:
     docker:
@@ -86,7 +84,6 @@ jobs:
             cd frontend
             npm install 
             npm run test
-
   test-backend:
     docker:
       - image: circleci/node:13.8.0
@@ -100,7 +97,6 @@ jobs:
             cd backend
             npm install 
             npm run test
-
   scan-frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -147,7 +143,6 @@ jobs:
               --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7} \
               --tags project=udapeople \
               --parameter-overrides ID=${CIRCLE_WORKFLOW_ID:0:7}
-
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -313,24 +308,22 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --filters "Name=tag:project,Values=udapeople" \
             --output text )
-      # - run:
-      #     name: Backend smoke test.
-      #     command: |
-      #       export BACKEND_IP=$(aws ec2 describe-instances  \
-      #       --query 'Reservations[*].Instances[*].PublicIpAddress' \
-      #       --filters "Name=tag:project,Values=udapeople" \
-      #       --output text )
-
-      #       sleep 2m
-
-      #       export API_URL="http://${BACKEND_IP}:3030"
-      #       echo "${API_URL}"
-      #       if curl "${API_URL}/api/status" | grep "ok"
-      #       then
-      #           return 0
-      #       else
-      #           return 1
-      #       fi
+      - run:
+          name: Backend smoke test.
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances  \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --filters "Name=tag:project,Values=udapeople" \
+            --output text )
+            sleep 2
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+                return 0
+            else
+                return 1
+            fi
       - run:
           name: Frontend smoke test
           command: |
@@ -367,18 +360,15 @@ jobs:
             --no-paginate --output text)
             echo $OldWorkflowID >> ~/OldWorkflowID.txt
             cat ~/OldWorkflowID.txt
-
             #change the stack name
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
               --stack-name InitialStack \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
-
             # IDs
             echo OldWorkflowID : "${OldWorkflowID}"
             echo Current Workflow ID: ${CIRCLE_WORKFLOW_ID:0:7}
-
       - destroy-environment:
           id: ${CIRCLE_WORKFLOW_ID:0:7}  
       - revert-migrations:
@@ -394,11 +384,11 @@ jobs:
             name: Get old stack workflow id
             command: |
               # your code here
-              export OldWorkflowID= '569473b'
-
+              export OldWorkflowID=$(aws cloudformation \
+              list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+              --no-paginate --output text)
               echo OldWorkflowID: "${OldWorkflowID}"
               echo CIRCLE_WORKFLOW_ID "${CIRCLE_WORKFLOW_ID:0:7}"
-
               # Fetch the stack names
               export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
               --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
@@ -406,10 +396,10 @@ jobs:
         - run:
             name: Remove old stacks and files
             command: |
-              if [[ "$CIRCLE_WORKFLOW_ID:0:7" =~ "$OldWorkflowID" ]]
+              if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
               then
                 echo "------------------=--Deleting Stack--=---------------"
-                aws s3 rm "s3://udapeople-$OldWorkflowID" --recursive
+                aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
                 aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
                 aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
               else
